@@ -32,6 +32,11 @@ class PiRunApp {
 
         document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
         document.getElementById(`${viewName}-view`).classList.add('active');
+
+        // Load scripts when switching to runner view
+        if (viewName === 'runner') {
+            this.loadScripts();
+        }
     }
 
     // File View
@@ -174,6 +179,72 @@ class PiRunApp {
     // Runner View
     setupRunnerView() {
         document.getElementById('run-btn').addEventListener('click', () => this.runScript());
+    }
+
+    async loadScripts() {
+        const scriptsList = document.getElementById('scripts-list');
+        scriptsList.innerHTML = '<div style="padding: 1rem; color: #6c7086;">Loading scripts...</div>';
+
+        try {
+            const scripts = await this.findPythonScripts('');
+            scriptsList.innerHTML = '';
+
+            if (scripts.length === 0) {
+                scriptsList.innerHTML = '<div style="padding: 1rem; color: #6c7086;">No .py files found</div>';
+                return;
+            }
+
+            scripts.forEach(script => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const icon = document.createElement('span');
+                icon.className = 'file-icon';
+                icon.textContent = '🐍';
+
+                const name = document.createElement('span');
+                name.className = 'file-name';
+                name.textContent = script;
+
+                item.appendChild(icon);
+                item.appendChild(name);
+
+                item.addEventListener('click', () => {
+                    document.getElementById('script-path').value = script;
+                    // Highlight selected
+                    document.querySelectorAll('#scripts-list .file-item').forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                });
+
+                scriptsList.appendChild(item);
+            });
+        } catch (error) {
+            scriptsList.innerHTML = `<div style="padding: 1rem; color: #f38ba8;">Error loading scripts</div>`;
+        }
+    }
+
+    async findPythonScripts(path, scripts = []) {
+        try {
+            const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
+            const data = await response.json();
+
+            if (data.error) return scripts;
+
+            for (const entry of data.entries) {
+                const fullPath = path ? `${path}/${entry.name}` : entry.name;
+
+                if (entry.type === 'dir') {
+                    // Recursively search directories
+                    await this.findPythonScripts(fullPath, scripts);
+                } else if (entry.name.endsWith('.py')) {
+                    scripts.push(fullPath);
+                }
+            }
+
+            return scripts;
+        } catch (error) {
+            return scripts;
+        }
     }
 
     async runScript() {

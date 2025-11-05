@@ -45,24 +45,35 @@
 
             <!-- Runner View -->
             <div id="runner-view" class="view">
-                <div class="runner-controls">
-                    <div class="form-group">
-                        <label for="script-path">Script Path</label>
-                        <input type="text" id="script-path" placeholder="scripts/example.py">
+                <div class="runner-layout">
+                    <div class="runner-sidebar">
+                        <div class="path-bar">
+                            <span>Python Scripts</span>
+                        </div>
+                        <div id="scripts-list" class="file-list"></div>
                     </div>
-                    <div class="form-group">
-                        <label for="script-args">Arguments (space-separated)</label>
-                        <input type="text" id="script-args" placeholder="--flag value">
-                    </div>
-                    <button id="run-btn" class="btn btn-primary">Run Script</button>
-                </div>
 
-                <div class="runner-output">
-                    <div class="output-header">
-                        <span id="run-status">Ready</span>
-                        <span id="run-time"></span>
+                    <div class="runner-main">
+                        <div class="runner-controls">
+                            <div class="form-group">
+                                <label for="script-path">Script Path</label>
+                                <input type="text" id="script-path" placeholder="scripts/hello.py">
+                            </div>
+                            <div class="form-group">
+                                <label for="script-args">Arguments (space-separated)</label>
+                                <input type="text" id="script-args" placeholder="--arg1 value1 --arg2 value2">
+                            </div>
+                            <button id="run-btn" class="btn btn-primary btn-large">▶ Run Script</button>
+                        </div>
+
+                        <div class="runner-output">
+                            <div class="output-header">
+                                <span id="run-status">Ready</span>
+                                <span id="run-time"></span>
+                            </div>
+                            <pre id="output-log">Click "Run Script" to execute a Python script...</pre>
+                        </div>
                     </div>
-                    <pre id="output-log"></pre>
                 </div>
             </div>
         </main>
