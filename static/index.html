@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PiRun</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PiRun</h1>
+            <div class="tabs">
+                <button class="tab active" data-view="files">Files</button>
+                <button class="tab" data-view="runner">Run</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- File Browser View -->
+            <div id="files-view" class="view active">
+                <div class="sidebar">
+                    <div class="path-bar">
+                        <span id="current-path">/</span>
+                    </div>
+                    <div id="file-list" class="file-list"></div>
+                </div>
+
+                <div class="editor-pane">
+                    <div id="editor-empty" class="empty-state">
+                        <p>Select a file to view or edit</p>
+                    </div>
+                    <div id="editor-container" class="hidden">
+                        <div class="editor-header">
+                            <span id="editor-filename"></span>
+                            <div class="editor-actions">
+                                <button id="save-btn" class="btn btn-primary">Save</button>
+                                <button id="close-btn" class="btn btn-secondary">Close</button>
+                            </div>
+                        </div>
+                        <textarea id="editor" spellcheck="false"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Runner View -->
+            <div id="runner-view" class="view">
+                <div class="runner-controls">
+                    <div class="form-group">
+                        <label for="script-path">Script Path</label>
+                        <input type="text" id="script-path" placeholder="scripts/example.py">
+                    </div>
+                    <div class="form-group">
+                        <label for="script-args">Arguments (space-separated)</label>
+                        <input type="text" id="script-args" placeholder="--flag value">
+                    </div>
+                    <button id="run-btn" class="btn btn-primary">Run Script</button>
+                </div>
+
+                <div class="runner-output">
+                    <div class="output-header">
+                        <span id="run-status">Ready</span>
+                        <span id="run-time"></span>
+                    </div>
+                    <pre id="output-log"></pre>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

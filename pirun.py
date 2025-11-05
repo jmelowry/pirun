@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+"""PiRun CLI - Sandboxed Python project manager for Raspberry Pi."""
+import os
+import sys
+import subprocess
+from pathlib import Path
+import click
+
+from services.config import Config
+from services.exec_service import ExecutionService
+from server import run_server
+
+
+@click.group()
+def cli():
+    """PiRun - Sandboxed Python project manager."""
+    pass
+
+
+@cli.command()
+@click.argument('project_path', type=click.Path())
+@click.option('--name', default=None, help='Project name')
+def init(project_path, name):
+    """Initialize a new PiRun project."""
+    project_path = Path(project_path).resolve()
+
+    # Create project directory if it doesn't exist
+    project_path.mkdir(parents=True, exist_ok=True)
+
+    click.echo(f"Initializing PiRun project at: {project_path}")
+
+    # Create directory structure
+    (project_path / 'scripts').mkdir(exist_ok=True)
+    (project_path / 'var' / 'logs').mkdir(parents=True, exist_ok=True)
+
+    # Create virtualenv
+    click.echo("Creating virtual environment...")
+    venv_path = project_path / '.venv'
+    if not venv_path.exists():
+        try:
+            # Try virtualenv first, fall back to venv
+            try:
+                subprocess.run(
+                    ['virtualenv', str(venv_path)],
+                    check=True,
+                    capture_output=True
+                )
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                # Fall back to built-in venv
+                subprocess.run(
+                    [sys.executable, '-m', 'venv', str(venv_path)],
+                    check=True,
+                    capture_output=True
+                )
+            click.echo("✓ Virtual environment created")
+        except subprocess.CalledProcessError as e:
+            click.echo(f"✗ Failed to create virtualenv: {e.stderr.decode()}", err=True)
+            sys.exit(1)
+    else:
+        click.echo("✓ Virtual environment already exists")
+
+    # Create config
+    config = Config(str(project_path))
+    config.config['name'] = name or project_path.name
+    config.config['base_dir'] = str(project_path)
+    config.save()
+    click.echo("✓ Configuration saved to .pirun.yaml")
+
+    # Create example script
+    example_script = project_path / 'scripts' / 'hello.py'
+    if not example_script.exists():
+        example_script.write_text("""#!/usr/bin/env python3
+\"\"\"Example PiRun script.\"\"\"
+import sys
+
+def main():
+    print("Hello from PiRun!")
+    print(f"Python: {sys.version}")
+    print(f"Arguments: {sys.argv[1:]}")
+
+if __name__ == '__main__':
+    main()
+""")
+        click.echo("✓ Example script created: scripts/hello.py")
+
+    click.echo(f"\n✓ Project initialized successfully!")
+    click.echo(f"\nNext steps:")
+    click.echo(f"  1. Start the server: pirun serve {project_path}")
+    click.echo(f"  2. Open http://127.0.0.1:8080 in your browser")
+    click.echo(f"  3. Or run a script: pirun run {project_path} scripts/hello.py")
+
+
+@cli.command()
+@click.argument('project_path', type=click.Path(exists=True))
+@click.option('--addr', default='127.0.0.1:8080', help='Address to bind to (host:port)')
+def serve(project_path, addr):
+    """Start the web server for a project."""
+    project_path = Path(project_path).resolve()
+
+    # Verify project is initialized
+    if not (project_path / '.pirun.yaml').exists():
+        click.echo("Error: Not a PiRun project. Run 'pirun init' first.", err=True)
+        sys.exit(1)
+
+    # Parse address
+    try:
+        host, port = addr.rsplit(':', 1)
+        port = int(port)
+    except ValueError:
+        click.echo(f"Error: Invalid address format: {addr}", err=True)
+        click.echo("Use format: host:port (e.g., 127.0.0.1:8080)", err=True)
+        sys.exit(1)
+
+    # Start server
+    try:
+        run_server(str(project_path), host, port)
+    except KeyboardInterrupt:
+        click.echo("\nServer stopped.")
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+@cli.command()
+@click.argument('project_path', type=click.Path(exists=True))
+@click.argument('script_path')
+@click.argument('script_args', nargs=-1)
+def run(project_path, script_path, script_args):
+    """Execute a Python script in the project's venv."""
+    project_path = Path(project_path).resolve()
+
+    # Verify project is initialized
+    if not (project_path / '.pirun.yaml').exists():
+        click.echo("Error: Not a PiRun project. Run 'pirun init' first.", err=True)
+        sys.exit(1)
+
+    # Load config and create exec service
+    config = Config(str(project_path))
+    exec_service = ExecutionService(
+        str(project_path),
+        config.get('venv_python', '.venv/bin/python'),
+        config.get('server.run_timeout_ms', 30000)
+    )
+
+    # Start execution
+    click.echo(f"Running: {script_path}")
+    if script_args:
+        click.echo(f"Arguments: {' '.join(script_args)}")
+    click.echo()
+
+    try:
+        result = exec_service.start_run(script_path, list(script_args))
+        run_id = result['run_id']
+
+        # Poll for completion
+        import time
+        while True:
+            status = exec_service.get_status(run_id)
+            if status['state'] != 'running':
+                break
+            time.sleep(0.5)
+
+        # Print log
+        log = exec_service.get_log(run_id)
+        if log:
+            click.echo(log)
+
+        # Print status
+        if status['state'] == 'succeeded':
+            click.echo(f"\n✓ Script completed successfully (exit code: {status['exit_code']})")
+        else:
+            click.echo(f"\n✗ Script failed: {status['state']} (exit code: {status['exit_code']})", err=True)
+            sys.exit(1)
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    cli()
