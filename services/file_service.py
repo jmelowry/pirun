@@ -16,10 +16,16 @@ class FileService:
         Raises:
             ValueError: If path escapes base_dir
         """
+        # Empty string or "/" means base directory
+        if not relative_path or relative_path == '/':
+            return self.base_dir
+
         # Handle both relative and absolute paths
         if os.path.isabs(relative_path):
             full_path = Path(relative_path).resolve()
         else:
+            # Remove leading slashes from relative paths
+            relative_path = relative_path.lstrip('/')
             full_path = (self.base_dir / relative_path).resolve()
 
         # Ensure it's within base_dir
