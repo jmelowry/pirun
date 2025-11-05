@@ -14,13 +14,13 @@ class FileService:
         """Validate and resolve a path within base_dir.
 
         Raises:
-            ValueError: If path escapes base_dir or is absolute
+            ValueError: If path escapes base_dir
         """
+        # Handle both relative and absolute paths
         if os.path.isabs(relative_path):
-            raise ValueError("Absolute paths not allowed")
-
-        # Clean and resolve the path
-        full_path = (self.base_dir / relative_path).resolve()
+            full_path = Path(relative_path).resolve()
+        else:
+            full_path = (self.base_dir / relative_path).resolve()
 
         # Ensure it's within base_dir
         try:

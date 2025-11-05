@@ -95,13 +95,13 @@ sudo ln -s $(pwd)/pirun.py /usr/local/bin/pirun
 Verify the installation:
 
 ```bash
-pirun.py --help
+pirun --help
 ```
 
 You should see:
 
 ```
-Usage: pirun.py [OPTIONS] COMMAND [ARGS]...
+Usage: pirun [OPTIONS] COMMAND [ARGS]...
 
   PiRun - Sandboxed Python project manager.
 

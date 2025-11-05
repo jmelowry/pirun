@@ -25,7 +25,7 @@ export PATH="$PATH:$(pwd)"
 ### Initialize a new project
 
 ```bash
-./pirun.py init /path/to/myproject --name "My Project"
+pirun init /path/to/myproject --name "My Project"
 ```
 
 This creates:
@@ -38,7 +38,7 @@ This creates:
 ### Start the web server
 
 ```bash
-./pirun.py serve /path/to/myproject
+pirun serve /path/to/myproject
 ```
 
 Then open http://127.0.0.1:8080 in your browser.
@@ -50,7 +50,7 @@ The web UI provides:
 ### Run scripts from CLI
 
 ```bash
-./pirun.py run /path/to/myproject scripts/hello.py --arg1 value
+pirun run /path/to/myproject scripts/hello.py --arg1 value
 ```
 
 ## Features
@@ -85,7 +85,7 @@ server:
 
 ```bash
 # Initialize
-./pirun.py init ~/pirun-demo
+pirun init ~/pirun-demo
 
 # Create a script
 cat > ~/pirun-demo/scripts/greet.py << 'EOF'
@@ -95,10 +95,10 @@ print(f"Hello, {name}!")
 EOF
 
 # Run it
-./pirun.py run ~/pirun-demo scripts/greet.py Alice
+pirun run ~/pirun-demo scripts/greet.py Alice
 
 # Or start the web UI
-./pirun.py serve ~/pirun-demo
+pirun serve ~/pirun-demo
 ```
 
 ## API Endpoints

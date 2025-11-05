@@ -58,6 +58,10 @@ download_file() {
 mkdir -p services static
 
 # Download main files
+echo "  - pirun"
+download_file "pirun"
+chmod +x pirun
+
 echo "  - pirun.py"
 download_file "pirun.py"
 chmod +x pirun.py
@@ -86,6 +90,31 @@ echo ""
 echo "Installing Python dependencies..."
 python3 -m pip install -q -r requirements.txt
 
+# Create symlink in /usr/local/bin
+echo ""
+echo "Creating symlink..."
+SYMLINK_TARGET="/usr/local/bin/pirun"
+
+if [ -w "/usr/local/bin" ]; then
+    # We have write access, create symlink directly
+    ln -sf "$INSTALL_DIR/pirun" "$SYMLINK_TARGET"
+    echo "✓ Symlink created: $SYMLINK_TARGET"
+else
+    # Need sudo for /usr/local/bin
+    echo "Creating symlink requires elevated privileges."
+    if command -v sudo &> /dev/null; then
+        if sudo ln -sf "$INSTALL_DIR/pirun" "$SYMLINK_TARGET"; then
+            echo "✓ Symlink created: $SYMLINK_TARGET"
+        else
+            echo "⚠ Failed to create symlink. You can create it manually:"
+            echo "  sudo ln -s $INSTALL_DIR/pirun /usr/local/bin/pirun"
+        fi
+    else
+        echo "⚠ sudo not available. You can create the symlink manually:"
+        echo "  ln -s $INSTALL_DIR/pirun /usr/local/bin/pirun"
+    fi
+fi
+
 echo ""
 echo "======================================"
 echo "  Installation Complete!"
@@ -93,17 +122,8 @@ echo "======================================"
 echo ""
 echo "PiRun installed to: $INSTALL_DIR"
 echo ""
-echo "Add to PATH by running:"
-echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
-echo ""
-echo "Or add this to your ~/.bashrc or ~/.zshrc:"
-echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
-echo ""
 echo "Quick start:"
-echo "  $INSTALL_DIR/pirun.py init ~/myproject"
-echo "  $INSTALL_DIR/pirun.py serve ~/myproject"
-echo ""
-echo "Or with PATH configured:"
-echo "  pirun.py init ~/myproject"
-echo "  pirun.py serve ~/myproject"
+echo "  mkdir ~/myproject && cd ~/myproject"
+echo "  pirun init"
+echo "  pirun serve"
 echo ""

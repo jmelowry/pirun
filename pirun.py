@@ -18,7 +18,7 @@ def cli():
 
 
 @cli.command()
-@click.argument('project_path', type=click.Path())
+@click.argument('project_path', type=click.Path(), default='.')
 @click.option('--name', default=None, help='Project name')
 def init(project_path, name):
     """Initialize a new PiRun project."""
@@ -85,13 +85,14 @@ if __name__ == '__main__':
 
     click.echo(f"\n✓ Project initialized successfully!")
     click.echo(f"\nNext steps:")
-    click.echo(f"  1. Start the server: pirun serve {project_path}")
-    click.echo(f"  2. Open http://127.0.0.1:8080 in your browser")
-    click.echo(f"  3. Or run a script: pirun run {project_path} scripts/hello.py")
+    click.echo(f"  1. cd {project_path if project_path != Path('.') else os.getcwd()}")
+    click.echo(f"  2. Start the server: pirun serve")
+    click.echo(f"  3. Open http://127.0.0.1:8080 in your browser")
+    click.echo(f"  4. Or run a script: pirun run scripts/hello.py")
 
 
 @cli.command()
-@click.argument('project_path', type=click.Path(exists=True))
+@click.argument('project_path', type=click.Path(exists=True), default='.')
 @click.option('--addr', default='127.0.0.1:8080', help='Address to bind to (host:port)')
 def serve(project_path, addr):
     """Start the web server for a project."""
@@ -122,12 +123,12 @@ def serve(project_path, addr):
 
 
 @cli.command()
-@click.argument('project_path', type=click.Path(exists=True))
 @click.argument('script_path')
 @click.argument('script_args', nargs=-1)
-def run(project_path, script_path, script_args):
+@click.option('--project', '-p', default='.', help='Project directory (default: current directory)')
+def run(script_path, script_args, project):
     """Execute a Python script in the project's venv."""
-    project_path = Path(project_path).resolve()
+    project_path = Path(project).resolve()
 
     # Verify project is initialized
     if not (project_path / '.pirun.yaml').exists():

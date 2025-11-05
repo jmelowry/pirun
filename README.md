@@ -25,14 +25,14 @@ export PATH="$PATH:$HOME/.pirun"
 ### Initialize a Project
 
 ```bash
-pirun.py init ~/myproject
+pirun init ~/myproject
 cd ~/myproject
 ```
 
 ### Start the Web UI
 
 ```bash
-pirun.py serve ~/myproject
+pirun serve ~/myproject
 ```
 
 Open **http://127.0.0.1:8080** in your browser.
@@ -40,7 +40,7 @@ Open **http://127.0.0.1:8080** in your browser.
 ### Or Run Scripts from CLI
 
 ```bash
-pirun.py run ~/myproject scripts/hello.py
+pirun run ~/myproject scripts/hello.py
 ```
 
 ## 📸 Screenshots
@@ -103,7 +103,7 @@ myproject/
 
 ```bash
 # Initialize project
-pirun.py init ~/weather-station
+pirun init ~/weather-station
 
 # Create a sensor script
 cat > ~/weather-station/scripts/read_sensor.py << 'EOF'
@@ -113,14 +113,14 @@ print(f"Temperature: {temperature}°C")
 EOF
 
 # Run it
-pirun.py run ~/weather-station scripts/read_sensor.py
+pirun run ~/weather-station scripts/read_sensor.py
 ```
 
 ### Example 2: Web-Based Script Management
 
 ```bash
 # Start the server
-pirun.py serve ~/weather-station
+pirun serve ~/weather-station
 
 # Access via browser at http://127.0.0.1:8080
 # Edit scripts in the Files tab
